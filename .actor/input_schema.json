@@ -1,0 +1,132 @@
+{
+    "title": "Reddit Scraper Input",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "startUrls": {
+            "title": "Start URLs",
+            "type": "array",
+            "description": "Reddit URLs: subreddit listings, posts, users, or search pages. When set, search fields are ignored.",
+            "editor": "requestListSources",
+            "prefill": [{ "url": "https://www.reddit.com/r/python/new/" }]
+        },
+        "searches": {
+            "title": "Search keywords",
+            "type": "array",
+            "description": "Keywords for Reddit search (used when startUrls is empty).",
+            "editor": "stringList",
+            "prefill": []
+        },
+        "searchCommunityName": {
+            "title": "Search community name",
+            "type": "string",
+            "description": "Restrict search to one subreddit (name only, no r/ prefix).",
+            "editor": "textfield"
+        },
+        "sort": {
+            "title": "Sort",
+            "type": "string",
+            "description": "Sort order for listings and search.",
+            "default": "new",
+            "enum": ["new", "hot", "top", "relevance", "comments"],
+            "enumTitles": ["New", "Hot", "Top", "Relevance", "Comments"]
+        },
+        "time": {
+            "title": "Time filter",
+            "type": "string",
+            "description": "Time range for top/relevance search (posts only).",
+            "default": "all",
+            "enum": ["hour", "day", "week", "month", "year", "all"],
+            "enumTitles": ["Past hour", "Past day", "Past week", "Past month", "Past year", "All time"]
+        },
+        "postDateLimit": {
+            "title": "Post date limit",
+            "type": "string",
+            "description": "Only include posts on or after this date (YYYY-MM-DD).",
+            "editor": "textfield"
+        },
+        "commentDateLimit": {
+            "title": "Comment date limit",
+            "type": "string",
+            "description": "Only include comments on or after this date (YYYY-MM-DD).",
+            "editor": "textfield"
+        },
+        "maxItems": {
+            "title": "Max items",
+            "type": "integer",
+            "description": "Hard cap on total dataset rows.",
+            "default": 100,
+            "minimum": 1
+        },
+        "maxPostCount": {
+            "title": "Max posts per listing",
+            "type": "integer",
+            "description": "Max posts per listing or search page.",
+            "default": 100,
+            "minimum": 1
+        },
+        "maxComments": {
+            "title": "Max comments per post",
+            "type": "integer",
+            "description": "Max comments per post. 0 = skip comment extraction.",
+            "default": 0,
+            "minimum": 0
+        },
+        "scrollTimeout": {
+            "title": "Scroll timeout (seconds)",
+            "type": "integer",
+            "description": "Seconds to keep paginating before stopping.",
+            "default": 40,
+            "minimum": 1
+        },
+        "includeNSFW": {
+            "title": "Include NSFW",
+            "type": "boolean",
+            "description": "Include adult content.",
+            "default": false
+        },
+        "searchPosts": {
+            "title": "Search posts",
+            "type": "boolean",
+            "description": "Search posts when using searches.",
+            "default": true
+        },
+        "searchComments": {
+            "title": "Search comments",
+            "type": "boolean",
+            "description": "Search comments when using searches.",
+            "default": false
+        },
+        "searchCommunities": {
+            "title": "Search communities",
+            "type": "boolean",
+            "description": "Search communities when using searches.",
+            "default": false
+        },
+        "searchUsers": {
+            "title": "Search users",
+            "type": "boolean",
+            "description": "Search users when using searches.",
+            "default": false
+        },
+        "skipComments": {
+            "title": "Skip comments",
+            "type": "boolean",
+            "description": "Skip comment extraction on post pages even if maxComments > 0.",
+            "default": false
+        },
+        "includeMediaLinks": {
+            "title": "Include media links",
+            "type": "boolean",
+            "description": "Include image and video URLs in output (slower).",
+            "default": false
+        },
+        "proxy": {
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "Apify proxy settings. Residential proxy recommended for Reddit.",
+            "editor": "proxy",
+            "prefill": { "useApifyProxy": true }
+        }
+    }
+}

@@ -1,0 +1,57 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "abc123",
+            "name": "t3_abc123",
+            "title": "dashcam reliability",
+            "selftext": "my dashcam overheated",
+            "subreddit": "dashcam",
+            "author": "tester",
+            "score": 42,
+            "num_comments": 2,
+            "created_utc": 1722513600.0,
+            "permalink": "/r/dashcam/comments/abc123/dashcam_reliability/"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt1",
+            "name": "t1_cmt1",
+            "body": "Great post!",
+            "author": "reader42",
+            "score": 3,
+            "created_utc": 1722513700.0,
+            "parent_id": "t3_abc123",
+            "replies": ""
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt2",
+            "name": "t1_cmt2",
+            "body": "[removed]",
+            "author": "[deleted]",
+            "score": 0,
+            "created_utc": 1722513800.0,
+            "parent_id": "t3_abc123",
+            "replies": ""
+          }
+        }
+      ]
+    }
+  }
+]

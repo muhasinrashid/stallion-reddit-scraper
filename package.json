@@ -1,0 +1,11 @@
+{
+    "name": "stallion-reddit-scraper",
+    "version": "0.1.0",
+    "description": "Stallion Reddit Scraper — Apify Actor",
+    "scripts": {
+        "start": "python -m src"
+    },
+    "devDependencies": {
+        "apify-cli": "^1.6.3"
+    }
+}
