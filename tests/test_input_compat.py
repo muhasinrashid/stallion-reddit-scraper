@@ -45,11 +45,30 @@ def test_harshmaur_aliases_map_to_run_config():
     assert config.search_community == "electricvehicles"
     assert config.max_items == 200
     assert config.max_comments == 10
+    assert config.crawl_comments is True
     assert config.posted_before == "2025-06-30"
     assert "https://www.reddit.com/r/cartalkuk/new/" in config.start_urls
     assert config.search_comments is True
     assert config.fast_mode is False
     assert config.only_with_flair == "Question"
+
+
+def test_crawl_comments_stays_on_when_apify_sends_false_default_with_max_comments():
+    config = RunConfig.from_actor_input(
+        {
+            "maxComments": 10,
+            "crawlCommentsPerPost": False,
+        }
+    )
+    assert config.max_comments == 10
+    assert config.crawl_comments is True
+    assert config.needs_full_post_fetch() is True
+
+
+def test_crawl_comments_auto_when_field_omitted():
+    config = RunConfig.from_actor_input({"maxComments": 10})
+    assert config.crawl_comments is True
+    assert config.needs_full_post_fetch() is True
 
 
 def test_as_mode_input_exposes_legacy_keys():

@@ -85,8 +85,17 @@ class RunConfig:
 
         max_items = max(1, int(data.get("maxPostsCount") or data.get("maxItems") or 100))
         max_post_count = max(1, int(data.get("maxPostsCount") or data.get("maxPostCount") or max_items))
-        max_comments = max(0, int(data.get("maxCommentsPerPost") or data.get("maxComments") or 0))
-        crawl_comments = bool(data.get("crawlCommentsPerPost", max_comments > 0))
+        max_comments = max(
+            0,
+            int(data.get("maxComments") or 0),
+            int(data.get("maxCommentsPerPost") or 0),
+        )
+        if data.get("skipComments") or max_comments <= 0:
+            crawl_comments = False
+        else:
+            # Apify Console injects crawlCommentsPerPost:false from schema defaults.
+            # When maxComments > 0, always crawl unless skipComments is set.
+            crawl_comments = True
 
         posted_after = _first_str(data.get("postedAfter"), data.get("postDateLimit"))
         posted_before = _first_str(data.get("postedBefore"))

@@ -30,7 +30,7 @@ async def scrape_post_url(
         path = urlparse(permalink).path
         permalink = path
 
-    log_info("Processing %s ...", url)
+    log_info("Fetching post (max_comments=%d): %s", max_comments, url)
 
     try:
         post_data, raw_comments = await client.fetch_post_with_comments(

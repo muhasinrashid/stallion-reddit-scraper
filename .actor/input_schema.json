@@ -133,8 +133,7 @@
         "crawlCommentsPerPost": {
             "title": "Crawl comments per post",
             "type": "boolean",
-            "description": "Explicit toggle to fetch comments. Defaults to true when maxComments > 0.",
-            "default": false
+            "description": "Fetch comments when maxComments > 0. Leave unchecked to auto-enable with maxComments."
         },
         "scrollTimeout": {
             "title": "Scroll timeout (seconds)",

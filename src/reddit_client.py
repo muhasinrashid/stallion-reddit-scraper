@@ -92,8 +92,8 @@ class RedditClient:
             return True
         if comments:
             return False
-        expected = int(post_data.get("num_comments") or 0)
-        return expected > 0
+        # Always try browser when comments were requested but HTTP returned none.
+        return True
 
     async def fetch_post_with_comments(
         self,

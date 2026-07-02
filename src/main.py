@@ -182,6 +182,14 @@ async def main() -> None:
         else:
             log_warning("Running without proxy — Reddit may block datacenter IPs.")
 
+        log_info(
+            "Run config: max_items=%d max_comments=%d crawl_comments=%s full_fetch=%s",
+            config.max_items,
+            config.max_comments,
+            config.crawl_comments,
+            config.needs_full_post_fetch(),
+        )
+
         async with RedditClient(proxy_url=proxy_url) as client:
             if config.start_urls:
                 Actor.log.info("Found startUrl. Search params will be ignored.")

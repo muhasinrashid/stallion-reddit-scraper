@@ -16,13 +16,14 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 @pytest.mark.asyncio
 async def test_fetch_post_with_comments_uses_http_when_available():
-    post_data = {"id": "abc123", "title": "test", "num_comments": 0}
+    post_data = {"id": "abc123", "title": "test", "num_comments": 2}
+    comments = [{"id": "c1", "body": "hi", "created_utc": 1.0, "author": "u"}]
 
     async with RedditClient() as client:
         with patch.object(
             client._require_http(),
             "fetch_post_with_comments",
-            new=AsyncMock(return_value=(post_data, [])),
+            new=AsyncMock(return_value=(post_data, comments)),
         ):
             post, comments = await client.fetch_post_with_comments(
                 "/r/dashcam/comments/abc123/x/",
@@ -36,7 +37,7 @@ async def test_fetch_post_with_comments_uses_http_when_available():
 async def test_fetch_post_with_comments_escalates_when_http_returns_empty_comments():
     payload = json.loads((FIXTURES / "post_with_comments.json").read_text())
     post_data = payload[0]["data"]["children"][0]["data"]
-    post_data["num_comments"] = 5
+    post_data["num_comments"] = 0
 
     async with RedditClient() as client:
         with patch.object(

@@ -3,7 +3,7 @@
     "name": "stallion-reddit-scraper-pro",
     "title": "Stallion Reddit Scraper Pro",
     "description": "Full-featured Reddit scraper with HTTP fast path and Playwright browser fallback for comments, profiles, and blocked pages. Residential proxy recommended.",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "buildTag": "latest",
     "dockerfile": "./Dockerfile",
     "dockerContextDir": "..",
