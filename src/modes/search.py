@@ -7,7 +7,7 @@ from typing import Any, AsyncIterator
 
 from src.log_utils import log_info, log_warning
 from src.normalize import passes_date_limit, parse_date_limit
-from src.reddit_http import RedditHttpClient
+from src.reddit_client import RedditClient
 from src.url_utils import listing_json_path, listing_params
 
 
@@ -18,7 +18,7 @@ def _search_path(subreddit: str | None) -> str:
 
 
 async def iter_search_posts(
-    client: RedditHttpClient,
+    client: RedditClient,
     searches: list[str],
     *,
     inp: dict[str, Any],

@@ -6,12 +6,12 @@ from typing import Any
 
 from src.log_utils import log_info, log_warning
 from src.normalize import normalize_post, parse_date_limit, passes_date_limit
-from src.reddit_http import RedditHttpClient
+from src.reddit_client import RedditClient
 from src.url_utils import parse_reddit_url
 
 
 async def scrape_post_url(
-    client: RedditHttpClient,
+    client: RedditClient,
     url: str,
     *,
     inp: dict[str, Any],

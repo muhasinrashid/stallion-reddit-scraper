@@ -8,7 +8,7 @@ from src.modes.browse import iter_discovered_posts
 from src.modes.post import scrape_post_url
 from src.modes.search import iter_search_posts
 from src.normalize import normalize_post
-from src.reddit_http import RedditHttpClient
+from src.reddit_client import RedditClient
 from src.log_utils import log_info, log_warning
 from src.url_utils import parse_reddit_url
 from typing import Any
@@ -21,7 +21,7 @@ def _needs_full_post_fetch(inp: dict[str, Any]) -> bool:
 
 
 async def _enrich_and_push(
-    client: RedditHttpClient,
+    client: RedditClient,
     post_stub: dict[str, Any],
     *,
     inp: dict[str, Any],
@@ -44,7 +44,7 @@ async def _enrich_and_push(
 
 
 async def _run_start_urls(
-    client: RedditHttpClient,
+    client: RedditClient,
     start_urls: list[str],
     inp: dict[str, Any],
     limits: dict[str, int],
@@ -103,7 +103,7 @@ async def _run_start_urls(
 
 
 async def _run_searches(
-    client: RedditHttpClient,
+    client: RedditClient,
     searches: list[str],
     inp: dict[str, Any],
     limits: dict[str, int],
@@ -174,7 +174,7 @@ async def main() -> None:
         start_urls = [u["url"] for u in (inp.get("startUrls") or []) if isinstance(u, dict) and u.get("url")]
         searches = [str(s).strip() for s in (inp.get("searches") or []) if str(s).strip()]
 
-        async with RedditHttpClient(proxy_url=proxy_url) as client:
+        async with RedditClient(proxy_url=proxy_url) as client:
             if start_urls:
                 Actor.log.info("Found startUrl. Search params will be ignored.")
                 pushed = await _run_start_urls(client, start_urls, inp, limits, include_media)

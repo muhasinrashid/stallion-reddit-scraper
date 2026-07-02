@@ -233,24 +233,33 @@ class RedditHttpClient:
             path = f"/{path}"
 
         payload = await self.fetch_json(path, {"limit": min(max_comments, 100)})
-        if not payload or not isinstance(payload, list) or len(payload) < 1:
-            return None, []
+        return parse_post_with_comments_payload(payload, max_comments=max_comments)
 
-        listing = payload[0] if isinstance(payload[0], dict) else {}
-        children = (listing.get("data") or {}).get("children") or []
-        post_data = None
-        for child in children:
-            if child.get("kind") == "t3" and isinstance(child.get("data"), dict):
-                post_data = child["data"]
-                break
 
-        comments: list[dict[str, Any]] = []
-        if max_comments > 0 and len(payload) > 1:
-            comment_listing = payload[1] if isinstance(payload[1], dict) else {}
-            comment_children = (comment_listing.get("data") or {}).get("children") or []
-            _flatten_comments(comment_children, comments, max_comments)
+def parse_post_with_comments_payload(
+    payload: dict[str, Any] | list[Any] | None,
+    *,
+    max_comments: int,
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+    """Parse Reddit's `[post_listing, comment_listing]` JSON payload."""
+    if not payload or not isinstance(payload, list) or len(payload) < 1:
+        return None, []
 
-        return post_data, comments
+    listing = payload[0] if isinstance(payload[0], dict) else {}
+    children = (listing.get("data") or {}).get("children") or []
+    post_data = None
+    for child in children:
+        if child.get("kind") == "t3" and isinstance(child.get("data"), dict):
+            post_data = child["data"]
+            break
+
+    comments: list[dict[str, Any]] = []
+    if max_comments > 0 and len(payload) > 1:
+        comment_listing = payload[1] if isinstance(payload[1], dict) else {}
+        comment_children = (comment_listing.get("data") or {}).get("children") or []
+        _flatten_comments(comment_children, comments, max_comments)
+
+    return post_data, comments
 
 
 def _flatten_comments(

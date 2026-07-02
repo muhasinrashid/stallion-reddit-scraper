@@ -7,12 +7,12 @@ from typing import Any, AsyncIterator
 
 from src.log_utils import log_info, log_warning
 from src.normalize import passes_date_limit, parse_date_limit
-from src.reddit_http import RedditHttpClient
+from src.reddit_client import RedditClient
 from src.url_utils import ParsedUrl, listing_json_path, listing_params, parse_reddit_url
 
 
 async def iter_discovered_posts(
-    client: RedditHttpClient,
+    client: RedditClient,
     start_urls: list[str],
     *,
     inp: dict[str, Any],
