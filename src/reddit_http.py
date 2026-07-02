@@ -165,8 +165,11 @@ class RedditHttpClient:
         after: str | None = None,
         max_items: int = 100,
         deadline: float | None = None,
+        kinds: frozenset[str] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
         """Yield posts from JSON listing, falling back to RSS when JSON is blocked."""
+        allowed_kinds = kinds or frozenset({"t3"})
+        can_use_rss = allowed_kinds == frozenset({"t3"})
         cursor = after
         fetched = 0
         base_params = dict(params or {})
@@ -190,21 +193,28 @@ class RedditHttpClient:
                         for child in children:
                             if fetched >= max_items:
                                 return
-                            if child.get("kind") != "t3":
+                            if child.get("kind") not in allowed_kinds:
                                 continue
-                            post_data = child.get("data")
-                            if isinstance(post_data, dict):
-                                post_data["_data_source"] = "json"
+                            item_data = child.get("data")
+                            if isinstance(item_data, dict):
+                                if child.get("kind") == "t3":
+                                    item_data["_data_source"] = "json"
                                 fetched += 1
-                                yield post_data
+                                yield item_data
                         cursor = data.get("after")
                         if not cursor:
                             break
                         await asyncio.sleep(PAGE_DELAY_SECONDS)
                         continue
 
-                log_info("JSON unavailable for %s — switching to RSS fallback", path)
-                used_rss = True
+                if can_use_rss:
+                    log_info("JSON unavailable for %s — switching to RSS fallback", path)
+                    used_rss = True
+                else:
+                    break
+
+            if not can_use_rss:
+                break
 
             rss_posts, next_after = await self.fetch_rss_listing(path, page_params)
             if not rss_posts:

@@ -6,7 +6,7 @@ import time
 from typing import Any, AsyncIterator
 
 from src.log_utils import log_info, log_warning
-from src.normalize import passes_date_limit, parse_date_limit
+from src.normalize import parse_date_limit, parse_date_limit_end, passes_date_range
 from src.reddit_client import RedditClient
 from src.url_utils import ParsedUrl, listing_json_path, listing_params, parse_reddit_url
 
@@ -22,7 +22,9 @@ async def iter_discovered_posts(
 ) -> AsyncIterator[dict[str, Any]]:
     """Phase 1: discover post stubs from listing startUrls."""
     include_nsfw = bool(inp.get("includeNSFW", False))
-    post_date_limit = parse_date_limit(inp.get("postDateLimit"))
+    posted_min = parse_date_limit(inp.get("postedAfter") or inp.get("postDateLimit"))
+    posted_max = parse_date_limit_end(inp.get("postedBefore"))
+    only_flair = str(inp.get("onlyWithFlair") or "").strip() or None
     deadline = time.monotonic() + scroll_timeout
     total = 0
 
@@ -54,7 +56,9 @@ async def iter_discovered_posts(
         ):
             if total >= max_items:
                 break
-            if not passes_date_limit(post_data, post_date_limit):
+            if not passes_date_range(post_data, min_ts=posted_min, max_ts=posted_max):
+                continue
+            if only_flair and str(post_data.get("link_flair_text") or "").strip().lower() != only_flair.lower():
                 continue
             total += 1
             yield post_data

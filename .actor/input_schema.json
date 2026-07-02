@@ -13,14 +13,34 @@
         "searches": {
             "title": "Search keywords",
             "type": "array",
-            "description": "Keywords for Reddit search (used when startUrls is empty).",
+            "description": "Keywords for Reddit search (used when startUrls is empty). Legacy alias for searchTerms.",
             "editor": "stringList",
+            "prefill": []
+        },
+        "searchTerms": {
+            "title": "Search terms",
+            "type": "array",
+            "description": "Keywords for Reddit search (harshmaur-compatible alias for searches).",
+            "editor": "stringList",
+            "prefill": []
+        },
+        "subredditUrls": {
+            "title": "Subreddit URLs",
+            "type": "array",
+            "description": "Subreddit URLs for deep listing scrape (merged into startUrls).",
+            "editor": "requestListSources",
             "prefill": []
         },
         "searchCommunityName": {
             "title": "Search community name",
             "type": "string",
-            "description": "Restrict search to one subreddit (name only, no r/ prefix).",
+            "description": "Restrict search to one subreddit (name only, no r/ prefix). Legacy alias for withinCommunity.",
+            "editor": "textfield"
+        },
+        "withinCommunity": {
+            "title": "Within community",
+            "type": "string",
+            "description": "Restrict search to one subreddit (harshmaur-compatible alias).",
             "editor": "textfield"
         },
         "sort": {
@@ -42,19 +62,50 @@
         "postDateLimit": {
             "title": "Post date limit",
             "type": "string",
+            "description": "Only include posts on or after this date (YYYY-MM-DD). Legacy alias for postedAfter.",
+            "editor": "textfield"
+        },
+        "postedAfter": {
+            "title": "Posted after",
+            "type": "string",
             "description": "Only include posts on or after this date (YYYY-MM-DD).",
+            "editor": "textfield"
+        },
+        "postedBefore": {
+            "title": "Posted before",
+            "type": "string",
+            "description": "Only include posts on or before this date (YYYY-MM-DD).",
             "editor": "textfield"
         },
         "commentDateLimit": {
             "title": "Comment date limit",
             "type": "string",
+            "description": "Only include comments on or after this date (YYYY-MM-DD). Legacy alias for commentedAfter.",
+            "editor": "textfield"
+        },
+        "commentedAfter": {
+            "title": "Commented after",
+            "type": "string",
             "description": "Only include comments on or after this date (YYYY-MM-DD).",
+            "editor": "textfield"
+        },
+        "commentedBefore": {
+            "title": "Commented before",
+            "type": "string",
+            "description": "Only include comments on or before this date (YYYY-MM-DD).",
             "editor": "textfield"
         },
         "maxItems": {
             "title": "Max items",
             "type": "integer",
-            "description": "Hard cap on total dataset rows.",
+            "description": "Hard cap on total dataset rows. Legacy alias — prefer maxPostsCount.",
+            "default": 100,
+            "minimum": 1
+        },
+        "maxPostsCount": {
+            "title": "Max posts count",
+            "type": "integer",
+            "description": "Hard cap on total rows and per-listing post limit (harshmaur-compatible).",
             "default": 100,
             "minimum": 1
         },
@@ -68,9 +119,22 @@
         "maxComments": {
             "title": "Max comments per post",
             "type": "integer",
-            "description": "Max comments per post. 0 = skip comment extraction.",
+            "description": "Max comments per post. 0 = skip comment extraction. Legacy alias for maxCommentsPerPost.",
             "default": 0,
             "minimum": 0
+        },
+        "maxCommentsPerPost": {
+            "title": "Max comments per post (alias)",
+            "type": "integer",
+            "description": "Harshmaur-compatible alias for maxComments.",
+            "default": 0,
+            "minimum": 0
+        },
+        "crawlCommentsPerPost": {
+            "title": "Crawl comments per post",
+            "type": "boolean",
+            "description": "Explicit toggle to fetch comments. Defaults to true when maxComments > 0.",
+            "default": false
         },
         "scrollTimeout": {
             "title": "Scroll timeout (seconds)",
@@ -120,6 +184,18 @@
             "type": "boolean",
             "description": "Include image and video URLs in output (slower).",
             "default": false
+        },
+        "fastMode": {
+            "title": "Fast mode",
+            "type": "boolean",
+            "description": "Use HTTP JSON fast path for search URLs when possible (Phase 6 expands behavior).",
+            "default": true
+        },
+        "onlyWithFlair": {
+            "title": "Only with flair",
+            "type": "string",
+            "description": "Only include posts matching this link flair text.",
+            "editor": "textfield"
         },
         "proxy": {
             "title": "Proxy configuration",

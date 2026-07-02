@@ -64,6 +64,7 @@ class RedditClient:
         after: str | None = None,
         max_items: int = 100,
         deadline: float | None = None,
+        kinds: frozenset[str] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
         """Yield listing posts via the HTTP/RSS fast path."""
         http = self._require_http()
@@ -74,6 +75,7 @@ class RedditClient:
             after=after,
             max_items=max_items,
             deadline=deadline,
+            kinds=kinds,
         ):
             yield post
 

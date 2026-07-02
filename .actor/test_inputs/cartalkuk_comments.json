@@ -1,0 +1,12 @@
+{
+  "startUrls": [
+    { "url": "https://www.reddit.com/r/cartalkuk/new/" }
+  ],
+  "maxItems": 20,
+  "maxComments": 10,
+  "scrollTimeout": 60,
+  "proxy": {
+    "useApifyProxy": true,
+    "apifyProxyGroups": ["RESIDENTIAL"]
+  }
+}

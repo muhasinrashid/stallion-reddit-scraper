@@ -144,7 +144,73 @@ def parse_date_limit(date_str: str | None) -> float | None:
         return None
 
 
+def parse_date_limit_end(date_str: str | None) -> float | None:
+    """Parse YYYY-MM-DD to UTC timestamp (end of day)."""
+    if not date_str:
+        return None
+    try:
+        dt = datetime.strptime(str(date_str).strip(), "%Y-%m-%d").replace(
+            hour=23, minute=59, second=59, tzinfo=UTC
+        )
+        return dt.timestamp()
+    except ValueError:
+        return None
+
+
 def passes_date_limit(raw: dict[str, Any], min_ts: float | None) -> bool:
     if min_ts is None:
         return True
     return post_created_ts(raw) >= min_ts
+
+
+def passes_date_range(
+    raw: dict[str, Any],
+    *,
+    min_ts: float | None = None,
+    max_ts: float | None = None,
+) -> bool:
+    ts = post_created_ts(raw)
+    if min_ts is not None and ts < min_ts:
+        return False
+    if max_ts is not None and ts > max_ts:
+        return False
+    return True
+
+
+def normalize_search_community(raw: dict[str, Any]) -> dict[str, Any]:
+    name = str(raw.get("display_name") or raw.get("name") or "").strip()
+    return {
+        "dataType": "community",
+        "parsedCommunityName": name.lower(),
+        "communityName": f"r/{name}" if name else "",
+        "title": str(raw.get("title") or ""),
+        "description": str(raw.get("public_description") or raw.get("description") or ""),
+        "subscribers": int(raw.get("subscribers") or 0),
+        "url": f"https://www.reddit.com/r/{name}/" if name else "",
+    }
+
+
+def normalize_search_user(raw: dict[str, Any]) -> dict[str, Any]:
+    name = str(raw.get("name") or "").strip()
+    return {
+        "dataType": "user",
+        "username": name,
+        "url": f"https://www.reddit.com/user/{name}/" if name else "",
+        "linkKarma": int(raw.get("link_karma") or 0),
+        "commentKarma": int(raw.get("comment_karma") or 0),
+    }
+
+
+def normalize_search_comment_row(raw: dict[str, Any]) -> dict[str, Any] | None:
+    row = normalize_comment(raw)
+    if not row:
+        return None
+    row["dataType"] = "comment"
+    row["communityName"] = str(raw.get("subreddit_name_prefixed") or "")
+    row["parsedCommunityName"] = str(raw.get("subreddit") or "").lower()
+    permalink = str(raw.get("permalink") or "").strip()
+    if permalink and not permalink.startswith("http"):
+        row["url"] = f"https://www.reddit.com{permalink}"
+    elif permalink:
+        row["url"] = permalink
+    return row
