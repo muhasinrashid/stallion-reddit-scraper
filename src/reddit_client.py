@@ -79,20 +79,37 @@ class RedditClient:
         ):
             yield post
 
+    def _needs_browser_for_comments(
+        self,
+        post_data: dict[str, Any] | None,
+        comments: list[dict[str, Any]],
+        *,
+        max_comments: int,
+    ) -> bool:
+        if max_comments <= 0:
+            return False
+        if post_data is None:
+            return True
+        if comments:
+            return False
+        expected = int(post_data.get("num_comments") or 0)
+        return expected > 0
+
     async def fetch_post_with_comments(
         self,
         permalink: str,
         *,
         max_comments: int = 100,
     ) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
-        """Fetch post detail and comments; browser fallback when HTTP JSON is blocked."""
+        """Fetch post detail and comments; browser fallback when HTTP JSON is blocked or comments missing."""
         http = self._require_http()
         path = permalink.rstrip("/")
         if not path.startswith("/"):
             path = f"/{path}"
 
         post_data, comments = await http.fetch_post_with_comments(permalink, max_comments=max_comments)
-        if post_data is not None:
+
+        if post_data is not None and not self._needs_browser_for_comments(post_data, comments, max_comments=max_comments):
             post_data["_data_source"] = FetchStrategy.HTTP_JSON.value
             log_info(
                 "fetch_post_with_comments strategy=%s post_id=%s comments=%d",
@@ -102,16 +119,36 @@ class RedditClient:
             )
             return post_data, comments
 
-        log_warning("HTTP post fetch failed for %s — escalating to browser", path)
+        if post_data is not None:
+            log_warning(
+                "HTTP returned post %s with %d/%d comments — escalating to browser",
+                post_data.get("id"),
+                len(comments),
+                int(post_data.get("num_comments") or 0),
+            )
+        else:
+            log_warning("HTTP post fetch failed for %s — escalating to browser", path)
+
         browser = await self._get_browser()
         payload = await browser.fetch_json(path, {"limit": min(max_comments, 100)})
-        post_data, comments = parse_post_with_comments_payload(payload, max_comments=max_comments)
-        if post_data is not None:
-            post_data["_data_source"] = FetchStrategy.BROWSER_JSON.value
+        browser_post, browser_comments = parse_post_with_comments_payload(payload, max_comments=max_comments)
+
+        if browser_post is not None:
+            browser_post["_data_source"] = FetchStrategy.BROWSER_JSON.value
             log_info(
                 "fetch_post_with_comments strategy=%s post_id=%s comments=%d",
                 FetchStrategy.BROWSER_JSON.value,
-                post_data.get("id"),
-                len(comments),
+                browser_post.get("id"),
+                len(browser_comments),
             )
-        return post_data, comments
+            return browser_post, browser_comments
+
+        if post_data is not None:
+            post_data["_data_source"] = FetchStrategy.HTTP_JSON.value
+            log_warning(
+                "Browser fallback failed for %s — keeping HTTP post without comments",
+                post_data.get("id"),
+            )
+            return post_data, comments
+
+        return None, []

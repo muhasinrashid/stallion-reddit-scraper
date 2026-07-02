@@ -70,11 +70,18 @@ class RedditHttpClient:
     async def _get(self, url: str, *, headers: dict[str, str] | None = None) -> httpx.Response | None:
         if not self._client:
             return None
-        try:
-            return await self._client.get(url, headers=headers or JSON_HEADERS, cookies=self._session_cookies)
-        except httpx.HTTPError as exc:
-            log_warning("HTTP error for %s: %s", url, exc)
-            return None
+        for attempt in range(3):
+            try:
+                return await self._client.get(url, headers=headers or JSON_HEADERS, cookies=self._session_cookies)
+            except httpx.HTTPError as exc:
+                if attempt < 2:
+                    wait = 2 * (attempt + 1)
+                    log_warning("HTTP error for %s (attempt %d/3): %s — retrying in %ss", url, attempt + 1, exc, wait)
+                    await asyncio.sleep(wait)
+                    continue
+                log_warning("HTTP error for %s: %s", url, exc)
+                return None
+        return None
 
     async def fetch_json(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any] | list[Any] | None:
         """GET Reddit JSON; returns None on failure (caller may use RSS)."""
