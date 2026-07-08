@@ -92,8 +92,11 @@ class RedditClient:
             return True
         if comments:
             return False
-        # Always try browser when comments were requested but HTTP returned none.
-        return True
+        # Only escalate when Reddit reports comments exist but HTTP returned none.
+        # Posts with num_comments=0 are legitimately empty — browser won't help
+        # and currently gets 403s that burn the run timeout.
+        expected = int(post_data.get("num_comments") or 0)
+        return expected > 0
 
     async def fetch_post_with_comments(
         self,

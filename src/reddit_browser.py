@@ -29,6 +29,10 @@ def _playwright_proxy(proxy_url: str) -> dict[str, str]:
     return proxy
 
 
+# Give up on browser fallback after this many consecutive hard blocks (403).
+BROWSER_BLOCK_CIRCUIT_LIMIT = 3
+
+
 class RedditBrowserFetcher:
     """Fetch Reddit JSON through a headless browser when HTTP is blocked."""
 
@@ -37,6 +41,8 @@ class RedditBrowserFetcher:
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
         self._context: BrowserContext | None = None
+        self._consecutive_blocks = 0
+        self._disabled = False
 
     async def __aenter__(self) -> RedditBrowserFetcher:
         return self
@@ -69,8 +75,24 @@ class RedditBrowserFetcher:
             await self._playwright.stop()
             self._playwright = None
 
+    def _note_block(self) -> None:
+        self._consecutive_blocks += 1
+        if self._consecutive_blocks >= BROWSER_BLOCK_CIRCUIT_LIMIT and not self._disabled:
+            self._disabled = True
+            log_warning(
+                "Browser fallback disabled after %d consecutive blocks — skipping further browser attempts",
+                self._consecutive_blocks,
+            )
+
+    def _note_success(self) -> None:
+        self._consecutive_blocks = 0
+        self._disabled = False
+
     async def fetch_json(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any] | list[Any] | None:
         """Load a Reddit `.json` endpoint in the browser and parse the response body."""
+        if self._disabled:
+            return None
+
         context = await self._ensure_context()
         query = dict(params or {})
         query.setdefault("raw_json", "1")
@@ -79,6 +101,7 @@ class RedditBrowserFetcher:
             path = f"{path}.json"
         qs = urlencode({k: v for k, v in query.items() if v is not None})
 
+        saw_block = False
         for base in BASES:
             url = f"{base}{path}?{qs}" if qs else f"{base}{path}"
             page = await context.new_page()
@@ -89,6 +112,7 @@ class RedditBrowserFetcher:
                     continue
                 if response.status == 403:
                     log_warning("Browser blocked (403) for %s", url)
+                    saw_block = True
                     continue
                 if response.status != 200:
                     log_warning("Browser HTTP %s for %s", response.status, url)
@@ -99,10 +123,14 @@ class RedditBrowserFetcher:
                     log_warning("Browser returned non-JSON body for %s", url)
                     continue
 
-                return json.loads(text)
+                payload = json.loads(text)
+                self._note_success()
+                return payload
             except (json.JSONDecodeError, TimeoutError) as exc:
                 log_warning("Browser fetch failed for %s: %s", url, exc)
             finally:
                 await page.close()
 
+        if saw_block:
+            self._note_block()
         return None
